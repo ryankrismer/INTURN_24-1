@@ -360,12 +360,21 @@ def find_mass_residual(mass_low, mass_high, n_low, n_high):
 # In[19]:
 
 
+# Setting initial densities
+n_low = n_0    # Undershoot
+n_high = 8 * n_0    # Overshoot
+
+
+# In[20]:
+
+
 # Function to find the radius of a 2.00 solar mass neutron star using linear interpolation
 def find_radius(epsilon_D):
-    # Setting initial densities
-    n_low = n_0    # Undershoot
+    # Specifying that we're working w/ external variables
+    global n_low
+    global n_high
+    
     print(f"n_low is {n_low}")
-    n_high = 8 * n_0    # Overshoot
     print(f"n_high is {n_high}")
     
     # Initial mass and radius outputs
@@ -377,9 +386,9 @@ def find_radius(epsilon_D):
         print("Error: mass_low greater than target mass")
         raise KeyboardInterrupt
     
-    if mass_high - target_mass < 0:
+    while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
-        raise KeyboardInterrupt
+        n_high += n_0
     
     # Finding initial mass residual and closest density
     mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
@@ -417,7 +426,7 @@ def find_radius(epsilon_D):
     return radius
 
 
-# In[20]:
+# In[21]:
 
 
 # Setting target mass
@@ -426,7 +435,7 @@ target_mass = 2.00    # In solar masses
 
 # ## Minimizing radius of $2.00\,M_{\odot}$ neutron star
 
-# In[21]:
+# In[22]:
 
 
 # Setting piece-wise EoS parameters to check
@@ -434,7 +443,7 @@ epsilon_low = epsilon_c_value    # This would mean no flat segment
 epsilon_delta = np.linspace(epsilon_low, epsilon_low * 10)
 
 
-# In[ ]:
+# In[23]:
 
 
 # Creating empty radii array to be populated during iterations
