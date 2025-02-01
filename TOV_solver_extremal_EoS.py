@@ -388,7 +388,9 @@ def find_radius(epsilon_D):
     
     while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
-        n_high += n_0
+        n_high += n_0    # Increasing n_high to avoid mass_high error, when necessary
+        print(f"n_high is {n_high}")
+        mass_high, _ = find_mass_radius(n_high, epsilon_D)
     
     # Finding initial mass residual and closest density
     mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
