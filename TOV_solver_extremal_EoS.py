@@ -192,14 +192,16 @@ def pressure_minus_target_p(n, target_p, epsilon_D):
     result = find_pressure(n, epsilon_D).value - target_p
     return result
 
+# Global variable so it can be modified when n_high needs to be increased later
+pressure_brentq_b = 10 ** 8
+
 def num_density_from_pressure(p, r, epsilon_D):
-    b = 10 ** 8
     if pressure_minus_target_p(0, p, epsilon_D) > 0:
         print(f"Distance from center is {(r / u.MeV).to(u.fm, equivalencies = natural).to(u.km)}, w/ find_pressure {find_pressure(0 * u.MeV ** 3, epsilon_D)} and p {p}.")
         return
     result = optimize.brentq(pressure_minus_target_p,
                              0,
-                             b,
+                             pressure_brentq_b,
                              args = (p, epsilon_D))
     return result
 
@@ -373,6 +375,7 @@ def find_radius(epsilon_D):
     # Specifying that we're working w/ external variables
     global n_low
     global n_high
+    global pressure_brentq_b
     
     print(f"n_low is {n_low}")
     print(f"n_high is {n_high}")
@@ -389,6 +392,7 @@ def find_radius(epsilon_D):
     while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
         n_high += n_0    # Increasing n_high to avoid mass_high error, when necessary
+        pressure_brentq_b *= 10    # Increasing pressure_brentq_b when n_high increased to avoid brentq error
         print(f"n_high is {n_high}")
         mass_high, _ = find_mass_radius(n_high, epsilon_D)
     
