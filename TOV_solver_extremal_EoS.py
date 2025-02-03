@@ -392,8 +392,9 @@ def find_radius(epsilon_D):
     while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
         n_high += n_0    # Increasing n_high to avoid mass_high error, when necessary
-        pressure_brentq_b *= 5    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
+        pressure_brentq_b *= 3    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
         print(f"n_high is {n_high}")
+        print(f"pressure_brentq_b is {pressure_brentq_b}")
         mass_high, _ = find_mass_radius(n_high, epsilon_D)
     
     # Finding initial mass residual and closest density
