@@ -362,9 +362,10 @@ def find_mass_residual(mass_low, mass_high, n_low, n_high):
 # In[19]:
 
 
-# Setting initial densities
+# Setting initial densities and default increment direction
 n_low = n_0    # Undershoot
 n_high = 8 * n_0    # Overshoot
+direction = 1    # For low mass_high errors: +1 means increase, -1 means decrease
 
 
 # In[20]:
@@ -376,6 +377,7 @@ def find_radius(epsilon_D):
     global n_low
     global n_high
     global pressure_brentq_b
+    global direction
     
     print(f"n_low is {n_low}")
     print(f"n_high is {n_high}")
@@ -391,13 +393,19 @@ def find_radius(epsilon_D):
     
     while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
-
+        
+        previous_mass_high = mass_high    # Saving previous mass_high in local variable in case direction needs reversing
+        
         # Note: both increments below are 1/8 of the initial values
-        n_high += n_0    # Increasing n_high to avoid mass_high error, when necessary
-        pressure_brentq_b += 1.25 * 10 ** 7    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
+        n_high += direction * n_0    # Increasing n_high to avoid mass_high error, when necessary
+        pressure_brentq_b += direction * 1.25 * 10 ** 7    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
         
         print(f"n_high is {n_high}")
         mass_high, _ = find_mass_radius(n_high, epsilon_D)
+
+        # Reversing direction of increments if default incrementing stops working
+        if mass_high < previous_mass_high:
+            direction *= -1
     
     # Finding initial mass residual and closest density
     mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
