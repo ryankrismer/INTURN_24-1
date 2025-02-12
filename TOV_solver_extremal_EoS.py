@@ -383,32 +383,94 @@ def find_radius(epsilon_D):
     print(f"n_high is {n_high}")
     
     # Initial mass and radius outputs
-    mass_low, _ = find_mass_radius(n_low, epsilon_D)
-    mass_high, _ = find_mass_radius(n_high, epsilon_D)
+    mass_low, radius_low = find_mass_radius(n_low, epsilon_D)
+    mass_high, radius_high = find_mass_radius(n_high, epsilon_D)
     
     # Ensuring there's not a problem
     if target_mass - mass_low < 0:
         print("Error: mass_low greater than target mass")
         raise KeyboardInterrupt
+
+    num_reversals = 0    # Initializing the number of consecutive reversals before entering the loop
+    speed = 1    # Initializing the speed of incrementing
+    
+    # Initializing the empty arrays of previous mass_high and n_high values to be filled in the loop
+    previous_mass_highs = []
+    previous_n_highs = []
     
     while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
-        
-        previous_mass_high = mass_high    # Saving previous mass_high in local variable in case direction needs reversing
+
+        # Saving previous mass_high and n_high in local arrays in case direction needs reversing
+        previous_mass_highs.append(mass_high)
+        previous_n_highs.append(n_high)
         
         # Note: both increments below are 1/8 of the initial values
-        n_high += direction * n_0    # Increasing n_high to avoid mass_high error, when necessary
-        pressure_brentq_b += direction * 1.25 * 10 ** 7    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
+        n_high += speed * direction * n_0    # Increasing n_high to avoid mass_high error, when necessary
+        pressure_brentq_b += speed * direction * 1.25 * 10 ** 7    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
         
         print(f"n_high is {n_high}")
-        mass_high, _ = find_mass_radius(n_high, epsilon_D)
-
+        mass_high, radius_high = find_mass_radius(n_high, epsilon_D)
+        
         # Reversing direction of increments if default incrementing stops working
-        if mass_high < previous_mass_high:
+        if mass_high < previous_mass_highs[-1]:
             direction *= -1
+            speed = 1    # Resetting to the default value for reversals
+            num_reversals += 1
+
+            # Checking for oscillation
+            if num_reversals == 2:
+                # Finding 3 calculated points in oscillation
+                y2 = np.max(previous_mass_highs)
+                max_index = np.where(previous_mass_highs == y2)[0][0]
+                x1 = previous_n_highs[max_index - 1]
+                y1 = previous_mass_highs[max_index - 1]
+                x2 = previous_n_highs[max_index]
+                x3 = previous_n_highs[max_index + 1]
+                y3 = previous_mass_highs[max_index + 1]
+
+                # Fitting parabola parameters
+                b_parab = ((y3 - y2) * (x2 ** 2 - x1 ** 2) / (x2 ** 2 - x3 ** 2) + y2 - y1) / ((x1 ** 2 - x2 ** 2) / (x2 + x3) + x2 - x1)
+                a_parab = (b_parab * x3 - y3 - b_parab * x2 + y2) / (x2 ** 2 - x3 ** 2)
+                c_parab = y1 - a_parab * x1 ** 2 - b_parab * x1
+
+                # Calculating maximum mass from parabola
+                x_max = - b_parab / 2 / a_parab
+                max_parab = a_parab * x_max ** 2 + b_parab * x_max + c_parab
+
+                # Checking whether maximum mass from parabola is less than or greater than 2.00 solar masses
+                if max_parab < target_mass:
+                    epsilon_delta_sub_2.append(epsilon_D * u.MeV / (1 * u.fm) ** 3)    # In sub-2 case, current value of epsilon_delta should be noted as such
+                    return
+
+                # In over-2 case, set n_high using parabola
+                else:
+                    d_parab = c_parab - target_mass    # For finding where mass = target_mass using parabola
+                    # Lower root is preferred to maintain consistency with linear interpolation method
+                    n_high = - (b_parab - np.sqrt(b_parab ** 2 - 4 * a_parab * d_parab)) / 2 / a_parab
+                    mass_high, radius_high = find_mass_radius(n_high, epsilon_D)
+
+                    # Verifying that mass_high is now greater than or equal to 2.00 solar masses
+                    if mass_high - target_mass > 0:
+                        break
+                    else:
+                        print("Error: mass_high less than target_mass after parabola fitting")
+                        raise KeyboardInterrupt
+        
+        else:
+            speed *= 2    # The speed should double if the mass increased but the loop continues
     
     # Finding initial mass residual and closest density
     mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
+    
+    # If one of the threshold values already yielded 2.00 solar masses
+    if np.abs(mass_residual) < 0.005:
+        if np.abs(mass_high - target_mass) < 0.005:
+            radius_result = radius_high
+    
+        else:
+            if np.abs(mass_low - target_mass) < 0.005:
+                radius_result = radius_low
     
     # Repeating until 2.00 solar masses
     while np.abs(mass_residual) > 0.005:
@@ -418,7 +480,7 @@ def find_radius(epsilon_D):
     
         # Finding new mass and radius outputs
         mass_result, radius_result = find_mass_radius(n_attempt, epsilon_D)
-        print(f"radius result is {radius_result} for epsilon_delta {epsilon_D} MeV / fm^3")
+        print(f"radius result is {radius_result} km for epsilon_delta {epsilon_D} MeV / fm^3")
     
         # Updating interpolation values
         if mass_result > mass_low and mass_result < target_mass:
@@ -436,12 +498,18 @@ def find_radius(epsilon_D):
     
         # Updating mass residual and closest density
         mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
+
+    epsilon_delta_2.append(epsilon_D * u.MeV / (1 * u.fm) ** 3)    # Labeling epsilon_delta value that yields of 2.00 solar masses
     
     # Recording radius for 2.00 solar masses
     radius = radius_result * u.km
     print(f"The radius is {radius:.3f}.")
-    return radius
+    radii.append(radius)
+    
+    return
 
+
+# ## Minimizing radius of $2.00\,M_{\odot}$ neutron star
 
 # In[21]:
 
@@ -450,25 +518,35 @@ def find_radius(epsilon_D):
 target_mass = 2.00    # In solar masses
 
 
-# ## Minimizing radius of $2.00\,M_{\odot}$ neutron star
-
 # In[22]:
 
 
 # Setting piece-wise EoS parameters to check
 epsilon_low = epsilon_c_value    # This would mean no flat segment
-epsilon_delta = np.linspace(epsilon_low, epsilon_low * 10)
+epsilon_high = epsilon_low * 10
+epsilon_delta = np.linspace(epsilon_low, epsilon_high)
+
+# Verifying value of energy density corresponding to n_high is greater than maximum epsilon_delta test value
+# This is to ensure that the global maximum mass is not missed
+epsilon_higher = find_epsilon(n_high).value * u.MeV * (1 * u.MeV).to(1 / u.fm, equivalencies = natural) ** 3
+if (epsilon_higher.value - epsilon_low) / (epsilon_high - epsilon_low) < 1.1:
+    print(f"Error: The energy density corresponding to n_high -- {epsilon_higher:.2f} -- is too low.")
+    epsilon_higher_ideal = 1.1 * (epsilon_high - epsilon_low) + epsilon_low
+    print(f"epsilon_high is {epsilon_high:.2f} MeV / fm3, so the n_high energy density should be {epsilon_higher_ideal:.2f} MeV / fm3.")
+    raise KeyboardInterrupt
 
 
 # In[23]:
 
 
-# Creating empty radii array to be populated during iterations
+# Creating empty radii and epsilon_delta arrays to be populated during iterations
 radii = []
+epsilon_delta_2 = []
+epsilon_delta_sub_2 = []
 
 # Iterating through EoS parameter array to find radii
 for epsilon_delta_value in epsilon_delta:
-    radii.append(find_radius(epsilon_delta_value))
+    find_radius(epsilon_delta_value)
 
 
 # In[ ]:
@@ -484,7 +562,7 @@ ax.set_title(r"Radius vs EoS parameter - piecewise EoS, $2.00\,M_{\odot}$",
 
 ax.set_xlabel(r"$\epsilon_{\Delta}$", fontsize = 15);
 ax.set_ylabel("Radius (km)", fontsize = 15);
-ax.plot(epsilon_delta, radii, "--o");
+ax.plot(epsilon_delta_2, radii, "--o");
 
 # Saving plots if result is notable
 plt.savefig("radius_vs_epsilon_delta.jpg", bbox_inches = "tight");
@@ -496,9 +574,21 @@ plt.savefig("radius_vs_epsilon_delta.pdf", bbox_inches = "tight");
 
 # Finding minimum radius and EoS parameter
 min_radius = np.min(radii)
-epsilon_delta_constraint = epsilon_delta[np.where(radii == min_radius)] * u.MeV / (1 * u.fm) ** 3
-print(f"The minimum radius is {min_radius:.3f}.")
-print(f"The value of epsilon_delta that minimizes radius is {epsilon_delta_constraint:.3f}.")
+epsilon_delta_constraint = epsilon_delta_2[np.where(radii == min_radius)[0][0]]
+print(f"The minimum radius of a 2.00 solar mass neutron star is {min_radius:.3f}.")
+print(f"The value of epsilon_delta that minimizes the radius of a 2.00 solar mass neutron star is {epsilon_delta_constraint:.3f}.")
+
+
+# In[ ]:
+
+
+# Printing the results
+print("radii:")
+print(radii)
+print("epsilon_delta_2:")
+print(epsilon_delta_2)
+print("epsilon_delta_sub_2:")
+print(epsilon_delta_sub_2)
 
 
 # In[ ]:
