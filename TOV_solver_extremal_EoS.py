@@ -240,7 +240,7 @@ def solve_TOV(n_central, p_central, epsilon_D):
                         )
 
     distance_from_center = (solution.t / u.MeV).to(u.fm, equivalencies = natural).to(u.km)
-    print(f"Mass is {(solution.y[1][-1] * u. MeV).to(u.J).to(u.kg, equivalencies = natural).to(u.solMass):.2f}.")
+    print(f"Mass is {(solution.y[1][-1] * u. MeV).to(u.J).to(u.kg, equivalencies = natural).to(u.solMass):.3f}.")
     cumulative_mass = (solution.y[1] * u.MeV).to(u.J).to(u.kg, equivalencies = natural).to(u.solMass)
     pressure = solution.y[0]
 
@@ -329,7 +329,7 @@ def find_mass_radius(num_density, epsilon_D):
     # Solving TOV
     p_central = find_pressure(num_density, epsilon_D).value
     distance_from_center, cumulative_mass, _ = solve_TOV(num_density.value, p_central, epsilon_D)
-    print("Solved TOV")
+    print(f"Solved TOV for epsilon_delta {epsilon_D} MeV / fm^3")
 
     # Removing NaN and inf values
     cumulative_mass = cumulative_mass[~np.isnan(cumulative_mass)]
@@ -457,8 +457,8 @@ def find_radius(epsilon_D):
                         print("Error: mass_high less than target_mass after parabola fitting")
                         raise KeyboardInterrupt
         
-        else:
-            speed *= 2    # The speed should double if the mass increased but the loop continues
+        # else:
+        #     speed *= 2    # The speed should double if the mass increased but the loop continues
     
     # Finding initial mass residual and closest density
     mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
@@ -480,7 +480,7 @@ def find_radius(epsilon_D):
     
         # Finding new mass and radius outputs
         mass_result, radius_result = find_mass_radius(n_attempt, epsilon_D)
-        print(f"radius result is {radius_result} km for epsilon_delta {epsilon_D} MeV / fm^3")
+        print(f"radius result is {radius_result} km")
     
         # Updating interpolation values
         if mass_result > mass_low and mass_result < target_mass:
