@@ -11,7 +11,7 @@ import time
 start_time = time.time()
 
 
-# In[2]:
+# In[3]:
 
 
 import numpy as np
@@ -27,7 +27,7 @@ from scipy import optimize
 from sympy import symbols, diff
 
 
-# In[3]:
+# In[4]:
 
 
 # Using natural units
@@ -250,7 +250,7 @@ def solve_TOV(n_central, p_central, epsilon_D):
 
 # ### Setting constants for solving TOV
 
-# In[12]:
+# In[6]:
 
 
 # Everything in natural units unless otherwise specified
@@ -423,10 +423,10 @@ def find_radius(epsilon_D):
                 # Finding 3 calculated points in oscillation
                 y2 = np.max(previous_mass_highs)
                 max_index = np.where(previous_mass_highs == y2)[0][0]
-                x1 = previous_n_highs[max_index - 1]
+                x1 = previous_n_highs[max_index - 1].value
                 y1 = previous_mass_highs[max_index - 1]
-                x2 = previous_n_highs[max_index]
-                x3 = previous_n_highs[max_index + 1]
+                x2 = previous_n_highs[max_index].value
+                x3 = previous_n_highs[max_index + 1].value
                 y3 = previous_mass_highs[max_index + 1]
 
                 # Fitting parabola parameters
