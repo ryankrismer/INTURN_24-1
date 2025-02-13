@@ -447,7 +447,8 @@ def find_radius(epsilon_D):
                 else:
                     d_parab = c_parab - target_mass    # For finding where mass = target_mass using parabola
                     # Lower root is preferred to maintain consistency with linear interpolation method
-                    n_high = - (b_parab - np.sqrt(b_parab ** 2 - 4 * a_parab * d_parab)) / 2 / a_parab
+                    n_high_value = - (b_parab - np.sqrt(b_parab ** 2 - 4 * a_parab * d_parab)) / 2 / a_parab
+                    n_high = n_high_value / (1 * u.fm).to(1 / u.MeV, equivalencies = natural) ** 3
                     mass_high, radius_high = find_mass_radius(n_high, epsilon_D)
 
                     # Verifying that mass_high is now greater than or equal to 2.00 solar masses
