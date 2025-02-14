@@ -541,10 +541,8 @@ target_mass = 2.00    # In solar masses
 
 
 # Setting piece-wise EoS parameters to check
-# epsilon_low = epsilon_c_value    # This would mean no flat segment
-epsilon_low = 645
-# epsilon_high = epsilon_low * 10
-epsilon_high = epsilon_low * 2
+epsilon_low = epsilon_c_value    # This would mean no flat segment
+epsilon_high = epsilon_low * 10
 epsilon_delta = np.linspace(epsilon_low, epsilon_high)
 
 # Verifying value of energy density corresponding to n_high is greater than maximum epsilon_delta test value
