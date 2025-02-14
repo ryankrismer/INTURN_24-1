@@ -581,7 +581,7 @@ ax.set_title(r"Radius vs EoS parameter - piecewise EoS, $2.00\,M_{\odot}$",
 
 ax.set_xlabel(r"$\epsilon_{\Delta}$", fontsize = 15);
 ax.set_ylabel("Radius (km)", fontsize = 15);
-ax.plot(epsilon_delta_2, radii, "--o");
+ax.plot(epsilon_delta_2.value, radii.value, "--o");
 
 # Saving plots if result is notable
 plt.savefig("radius_vs_epsilon_delta.jpg", bbox_inches = "tight");
