@@ -391,7 +391,6 @@ def find_radius(epsilon_D):
         print("Error: mass_low greater than target mass")
         raise KeyboardInterrupt
 
-    num_reversals = 0    # Initializing the number of consecutive reversals before entering the loop
     speed = 1    # Initializing the speed of incrementing
     
     # Initializing the empty arrays of previous mass_high and n_high values to be filled in the loop
@@ -416,10 +415,9 @@ def find_radius(epsilon_D):
         if mass_high < previous_mass_highs[-1]:
             direction *= -1
             speed = 1    # Resetting to the default value for reversals
-            num_reversals += 1
 
             # Checking for oscillation
-            if num_reversals == 2:
+            if np.size(previous_mass_highs) > 2:
                 # Finding 3 calculated points in oscillation
                 y2 = np.max(previous_mass_highs)
                 max_index = np.where(previous_mass_highs == y2)[0][0]
@@ -428,15 +426,26 @@ def find_radius(epsilon_D):
                 x2 = previous_n_highs[max_index].value
                 x3 = previous_n_highs[max_index + 1].value
                 y3 = previous_mass_highs[max_index + 1]
+                print(f"x1 = {x1}")
+                print(f"x2 = {x2}")
+                print(f"x3 = {x3}")
+                print(f"y1 = {y1}")
+                print(f"y2 = {y2}")
+                print(f"y3 = {y3}")
 
                 # Fitting parabola parameters
                 b_parab = ((y3 - y2) * (x2 ** 2 - x1 ** 2) / (x2 ** 2 - x3 ** 2) + y2 - y1) / ((x1 ** 2 - x2 ** 2) / (x2 + x3) + x2 - x1)
                 a_parab = (b_parab * x3 - y3 - b_parab * x2 + y2) / (x2 ** 2 - x3 ** 2)
                 c_parab = y1 - a_parab * x1 ** 2 - b_parab * x1
+                print(f"a_parab = {a_parab}")
+                print(f"b_parab = {b_parab}")
+                print(f"c_parab = {c_parab}")
 
                 # Calculating maximum mass from parabola
                 x_max = - b_parab / 2 / a_parab
+                print(f"x_max = {x_max}")
                 max_parab = a_parab * x_max ** 2 + b_parab * x_max + c_parab
+                print(f"max_parab = {max_parab}")
 
                 # Checking whether maximum mass from parabola is less than or greater than 2.00 solar masses
                 if max_parab < target_mass:
@@ -449,6 +458,7 @@ def find_radius(epsilon_D):
                     # Lower root is preferred to maintain consistency with linear interpolation method
                     n_high_value = - (b_parab - np.sqrt(b_parab ** 2 - 4 * a_parab * d_parab)) / 2 / a_parab
                     n_high = n_high_value / (1 * u.fm).to(1 / u.MeV, equivalencies = natural) ** 3
+                    print(f"n_high = {n_high}")
                     mass_high, radius_high = find_mass_radius(n_high, epsilon_D)
 
                     # Verifying that mass_high is now greater than or equal to 2.00 solar masses
