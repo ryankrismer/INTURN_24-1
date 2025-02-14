@@ -11,7 +11,7 @@ import time
 start_time = time.time()
 
 
-# In[3]:
+# In[2]:
 
 
 import numpy as np
@@ -27,7 +27,7 @@ from scipy import optimize
 from sympy import symbols, diff
 
 
-# In[4]:
+# In[3]:
 
 
 # Using natural units
@@ -250,7 +250,7 @@ def solve_TOV(n_central, p_central, epsilon_D):
 
 # ### Setting constants for solving TOV
 
-# In[6]:
+# In[12]:
 
 
 # Everything in natural units unless otherwise specified
@@ -396,23 +396,31 @@ def find_radius(epsilon_D):
     # Initializing the empty arrays of previous mass_high and n_high values to be filled in the loop
     previous_mass_highs = []
     previous_n_highs = []
+
+    # Saving initial mass_high and n_high
+    previous_mass_highs.append(mass_high)
+    previous_n_highs.append(n_high.copy())
+    print(f"previous_mass_highs: {previous_mass_highs}")
+    print(f"previous_n_highs: {previous_n_highs}")
     
     while mass_high - target_mass < 0:
         print("Error: mass_high less than target mass")
-
-        # Saving previous mass_high and n_high in local arrays in case direction needs reversing
-        previous_mass_highs.append(mass_high)
-        previous_n_highs.append(n_high)
         
         # Note: both increments below are 1/8 of the initial values
         n_high += speed * direction * n_0    # Increasing n_high to avoid mass_high error, when necessary
         pressure_brentq_b += speed * direction * 1.25 * 10 ** 7    # Increasing pressure_brentq_b when n_high increased to avoid brentq sign error
-        
         print(f"n_high is {n_high}")
+        
         mass_high, radius_high = find_mass_radius(n_high, epsilon_D)
+
+        # Saving previous mass_high and n_high in local arrays in case direction needs reversing
+        previous_mass_highs.append(mass_high)
+        previous_n_highs.append(n_high.copy())
+        print(f"previous_mass_highs: {previous_mass_highs}")
+        print(f"previous_n_highs: {previous_n_highs}")
         
         # Reversing direction of increments if default incrementing stops working
-        if mass_high < previous_mass_highs[-1]:
+        if mass_high < previous_mass_highs[-2]:
             direction *= -1
             speed = 1    # Resetting to the default value for reversals
 
@@ -421,9 +429,9 @@ def find_radius(epsilon_D):
                 # Finding 3 calculated points in oscillation
                 y2 = np.max(previous_mass_highs)
                 max_index = np.where(previous_mass_highs == y2)[0][0]
+                x2 = previous_n_highs[max_index].value
                 x1 = previous_n_highs[max_index - 1].value
                 y1 = previous_mass_highs[max_index - 1]
-                x2 = previous_n_highs[max_index].value
                 x3 = previous_n_highs[max_index + 1].value
                 y3 = previous_mass_highs[max_index + 1]
                 print(f"x1 = {x1}")
@@ -533,8 +541,10 @@ target_mass = 2.00    # In solar masses
 
 
 # Setting piece-wise EoS parameters to check
-epsilon_low = epsilon_c_value    # This would mean no flat segment
-epsilon_high = epsilon_low * 10
+# epsilon_low = epsilon_c_value    # This would mean no flat segment
+epsilon_low = 645
+# epsilon_high = epsilon_low * 10
+epsilon_high = epsilon_low * 2
 epsilon_delta = np.linspace(epsilon_low, epsilon_high)
 
 # Verifying value of energy density corresponding to n_high is greater than maximum epsilon_delta test value
