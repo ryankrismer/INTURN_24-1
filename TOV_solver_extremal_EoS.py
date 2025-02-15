@@ -476,8 +476,8 @@ def find_radius(epsilon_D):
                         print("Error: mass_high less than target_mass after parabola fitting")
                         raise KeyboardInterrupt
         
-        # else:
-        #     speed *= 2    # The speed should double if the mass increased but the loop continues
+        else:
+            speed *= 2    # The speed should double if the mass increased but the loop continues
     
     # Finding initial mass residual and closest density
     mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
