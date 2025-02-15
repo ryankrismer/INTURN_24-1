@@ -518,12 +518,11 @@ def find_radius(epsilon_D):
         # Updating mass residual and closest density
         mass_residual, n_closest = find_mass_residual(mass_low, mass_high, n_low, n_high)
 
-    epsilon_delta_2.append(epsilon_D * u.MeV / (1 * u.fm) ** 3)    # Labeling epsilon_delta value that yields of 2.00 solar masses
+    epsilon_delta_2.append(epsilon_D)    # Labeling epsilon_delta value that yields of 2.00 solar masses
     
     # Recording radius for 2.00 solar masses
-    radius = radius_result * u.km
-    print(f"The radius is {radius:.3f}.")
-    radii.append(radius)
+    print(f"The radius is {radius_result:.3f} km.")
+    radii.append(radius_result)
     
     return
 
@@ -581,11 +580,19 @@ ax.set_title(r"Radius vs EoS parameter - piecewise EoS, $2.00\,M_{\odot}$",
 
 ax.set_xlabel(r"$\epsilon_{\Delta}$", fontsize = 15);
 ax.set_ylabel("Radius (km)", fontsize = 15);
-ax.plot(epsilon_delta_2.value, radii.value, "--o");
+ax.plot(epsilon_delta_2, radii, "--o");
 
 # Saving plots if result is notable
 plt.savefig("radius_vs_epsilon_delta.jpg", bbox_inches = "tight");
 plt.savefig("radius_vs_epsilon_delta.pdf", bbox_inches = "tight");
+
+
+# In[ ]:
+
+
+# Adding units
+epsilon_delta_2 *= 1 * u.MeV / (1 * u.fm) ** 3
+radii *= 1 * u.km
 
 
 # In[ ]:
