@@ -402,15 +402,17 @@ def find_min_radius(epsilon_D, c_s_Upper):
 
 
 # Setting piece-wise EoS parameters to check
-N = 6
+N = 1
 
 epsilon_low = epsilon_c_value    # This would mean no flat segment
 epsilon_high = epsilon_low * 10
-epsilon_delta = np.linspace(epsilon_low, epsilon_high, N)
+# epsilon_delta = np.linspace(epsilon_low, epsilon_high, N)
+epsilon_delta = [1500.0]
 
 c_s_upper_low = 0.01
 c_s_upper_high = 1
-c_s_upper = np.linspace(c_s_upper_low, c_s_upper_high, N)
+# c_s_upper = np.linspace(c_s_upper_low, c_s_upper_high, N)
+c_s_upper = [0.406]
 
 # Verifying value of energy density corresponding to n_high is greater than maximum epsilon_delta test value
 # This is to ensure that the global maximum mass is not missed
@@ -464,22 +466,7 @@ with open("radius_minimization_2D.csv", "w") as outfile:
                 c_s_upper_constraint = c_s_upper_value
 
 
-# In[ ]:
-
-
-epsilon_delta = [150.0, 1500.0]
-c_s_upper = [0.01, 1.0]
-
-radii = [[10.952606248098515, 11.451567018175092],
-         [11.3331601753656, 4.698192983269555]
-        ]
-
-min_radius = 4.698192983269555
-epsilon_delta_constraint = 1500.0
-c_s_upper_constraint = 1.0
-
-
-# In[ ]:
+# In[23]:
 
 
 # Plotting minimum radius vs EoS parameters
@@ -490,13 +477,15 @@ ax.set_title(r"Minimum radius (km) vs $\epsilon_{\Delta}$ and $c_{s,\,\mathrm{up
              fontsize = 15
             );
 
-ax.set_xlabel(r"$\epsilon_{\Delta}\,\left(\frac{\mathrm{MeV}}{\mathrm{fm}^3}\right)$",
-              fontsize = 15);
+ax.set_xlabel(r"$c_{s,\,\mathrm{upper}}\,\left(c\right)$", fontsize = 15);
 
-ax.set_ylabel(r"$c_{s,\,\mathrm{upper}}\,\left(c\right)$", fontsize = 15);
-ax.set_xlim(50, 1600);
-ax.set_ylim(-0.1, 1.1);
-radius_contour = ax.contour(epsilon_delta, c_s_upper, radii);
+ax.set_ylabel(r"$\epsilon_{\Delta}\,\left(\frac{\mathrm{MeV}}{\mathrm{fm}^3}\right)$",
+              fontsize = 15
+             );
+
+# ax.set_xlim(-0.1, 1.1);
+# ax.set_ylim(50, 1600);
+radius_contour = ax.contour(c_s_upper, epsilon_delta, radii);
 ax.clabel(radius_contour);
 
 # Saving plot if result is notable
@@ -504,7 +493,7 @@ plt.savefig("min_radius_vs_epsilon_delta_and_c_s_upper.jpg", bbox_inches = "tigh
 plt.savefig("min_radius_vs_epsilon_delta_and_c_s_upper.pdf", bbox_inches = "tight");
 
 
-# In[ ]:
+# In[24]:
 
 
 # Adding units
@@ -515,7 +504,7 @@ min_radius *= 1 * u.km
 epsilon_delta_constraint *= 1 * u.MeV / (1 * u.fm) ** 3
 
 
-# In[ ]:
+# In[25]:
 
 
 # Displaying minimum radius and corresponding EoS parameters
@@ -524,7 +513,7 @@ print(f"The value of epsilon_delta that minimizes the radius is {epsilon_delta_c
 print(f"The value of c_s_upper that minimizes the radius is {c_s_upper_constraint:.3f}.")
 
 
-# In[ ]:
+# In[26]:
 
 
 # Printing the results
@@ -536,7 +525,7 @@ print("c_s_upper:")
 print(c_s_upper)
 
 
-# In[ ]:
+# In[27]:
 
 
 # Calculating runtime
